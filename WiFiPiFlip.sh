@@ -3,6 +3,22 @@
 # WiFiPiFlip Utility Script
 # Author: Brad Dougherty
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check for required tools and provide installation instructions if missing
+if ! command_exists iw; then
+    echo "Error: iw is not installed. Please install iw using 'sudo apt-get install iw'."
+    exit 1
+fi
+
+if ! command_exists nmcli; then
+    echo "Error: NetworkManager's nmcli is not installed. Please install network-manager using 'sudo apt-get install network-manager'."
+    exit 1
+fi
+
 # Function to check and display the WiFi mode
 check_wifi_mode() {
     # Use iw to get the current mode of the WiFi interface

@@ -3,23 +3,16 @@
 # WiFiPiFlip Utility Script
 # Author: Brad Dougherty
 
-# Attempt to guess the WiFi interface (usually wlan0, but let's find the first wireless interface)
-WIFI_INTERFACE=$(iw dev | awk '$1=="Interface"{print $2}' | head -n 1)
-
-# Attempt to guess the SSID using nmcli (requires NetworkManager)
-WIFI_SSID=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2)
-
-# Ask the user to confirm or input the WiFi details
-echo "Detected wireless interface: $WIFI_INTERFACE"
-read -p "Enter wireless interface [$WIFI_INTERFACE]: " input_interface
-WIFI_INTERFACE=${input_interface:-$WIFI_INTERFACE}
-
-echo "Detected SSID: $WIFI_SSID"
-read -p "Enter SSID [$WIFI_SSID]: " input_ssid
-WIFI_SSID=${input_ssid:-$WIFI_SSID}
-
-read -s -p "Enter WiFi Password: " WIFI_PASSWORD
-echo
+# Function to check and display the WiFi mode
+check_wifi_mode() {
+    # Use iw to get the current mode of the WiFi interface
+    local mode=$(iw dev $WIFI_INTERFACE info | grep 'type' | awk '{print $2}')
+    if [ -z "$mode" ]; then
+        echo "Unable to determine the current mode of $WIFI_INTERFACE."
+    else
+        echo "Current mode of $WIFI_INTERFACE: $mode"
+    fi
+}
 
 # Function to enable monitor mode
 enable_monitor_mode() {
@@ -38,13 +31,15 @@ reconnect_wifi() {
     sudo ip link set $WIFI_INTERFACE down
     sudo iw $WIFI_INTERFACE set type managed
     sudo ip link set $WIFI_INTERFACE up
-    # Attempt to reconnect using NetworkManager for simplicity
+    echo "Attempting to reconnect to WiFi..."
     nmcli d wifi connect "$WIFI_SSID" password "$WIFI_PASSWORD"
-    echo "Attempting to reconnect to $WIFI_SSID..."
+    echo "Reconnected to $WIFI_SSID in managed mode."
 }
 
 # Main menu function
 show_menu() {
+    # Display current WiFi status
+    check_wifi_mode
     echo "Please select an option:"
     echo "1) Enable monitor mode"
     echo "2) Reconnect to WiFi (managed mode)"
@@ -58,6 +53,22 @@ show_menu() {
         *) echo "Invalid selection." ;;
     esac
 }
+
+# Initial setup to guess WiFi interface and SSID
+WIFI_INTERFACE=$(iw dev | awk '$1=="Interface"{print $2}' | head -n 1)
+WIFI_SSID=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2)
+
+# Ask the user to confirm or input the WiFi details
+echo "Detected wireless interface: $WIFI_INTERFACE"
+read -p "Enter wireless interface [$WIFI_INTERFACE]: " input_interface
+WIFI_INTERFACE=${input_interface:-$WIFI_INTERFACE}
+
+echo "Detected SSID: $WIFI_SSID"
+read -p "Enter SSID [$WIFI_SSID]: " input_ssid
+WIFI_SSID=${input_ssid:-$WIFI_SSID}
+
+read -s -p "Enter WiFi Password: " WIFI_PASSWORD
+echo
 
 # Loop the menu
 while true; do

@@ -14,7 +14,17 @@ WiFiPiFlip enables Raspberry Pi users to effortlessly toggle their device's wire
 Before starting, ensure your Raspberry Pi has:
 - WiFi capabilities (e.g., Raspberry Pi 3/4, Zero W).
 - A recent version of Raspberry Pi OS or any compatible Linux distribution.
-- NetworkManager for managing network connections.
+- **NetworkManager** for managing network connections.
+- **iw** for configuring wireless devices.
+
+### Installing Prerequisites
+
+If you do not have NetworkManager or iw installed, you can install them by running:
+
+```bash
+sudo apt-get update
+sudo apt-get install network-manager iw
+```
 
 ## Installation
 
